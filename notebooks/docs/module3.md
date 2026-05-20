@@ -25,7 +25,8 @@
 
 ### A. Price & Volume Master Chart (Individual)
 * **Price layer:** Candlestick as default, with optional OHLC/line fallback.
-* **Trend overlays:** MA20, MA50, MA200.
+* **Trend overlays:** MA20, MA50, MA200 and Bollinger Bands
+.
 * **Volume panel:** Separate subplot with volume bars and volume MA20.
 * **Timeframes:** Must render correctly for daily/weekly/monthly/yearly.
 * **Usability:** Hover tooltips, range selector, readable axis labels.
@@ -44,8 +45,9 @@
 
 
 * **Scope:** Correlation matrix comparing key technical and risk indicators across the selected asset(s) and Benchmark (VN-Index), including:
-  - **Trend & Return Signals:** Current Price, Recent Movement, % Return (1W / 1M / 3M / YTD)
+  - **Trend & Return Signals:**  Daily Return, Volume Current Price, Recent Movement, % Return (1W / 1M / 3M / YTD)
   - **Moving Averages & Oscillators:** MA20, MA50, MA200, RSI, MACD
+  - **Price & Volume Anomalies:** Volume Spike, Gap Up/Down, Sudden Price Movement (flagged + explained)
   - **Risk Metrics:** Historical Volatility (HV 30D / 60D), Beta vs VN-Index, VaR (95% / 99%), Max Drawdown, Sharpe Ratio
 
 
@@ -95,6 +97,9 @@
 * **Computation:** Simulate N random portfolios using the individual time-series return data of Stock A and Stock B (and potentially other assets if provided). Calculate annualized return and volatility for each simulated portfolio.
 * **Visual:** Scatter plot of all simulated portfolios. Highlight the "Optimal Portfolio" (Maximum Sharpe Ratio) with a distinct star marker, and the "Minimum Volatility Portfolio" with another marker.
 * **Hover:** Tooltips must show the simulated weight allocations (e.g., A: 60%, B: 40%) and the Sharpe ratio for that specific point.
+* **Capital Market Line (CML):** Overlay the Capital Market Line starting from the risk-free rate on the Y-axis and extending through the Maximum Sharpe Ratio (Optimal) Portfolio. The CML represents the set of portfolios that optimally combine the risk-free asset with the tangency portfolio. 
+
+
 
 
 ### F. Asset Correlation Heatmap (Comparison)
@@ -152,3 +157,5 @@
 > 4. Cumulative Performance line chart (Target Stocks vs S&P 500 starting from day 1).
 > 5. Efficient Frontier scatter plot (y=return, x=volatility) by simulating random portfolio weights using individual asset return series.
 > Ensure data is date-aligned for comparison charts. Save outputs to `data/processed/visualization/` as HTML (required) and PNG (best effort)."
+
+
