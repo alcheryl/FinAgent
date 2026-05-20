@@ -1,12 +1,11 @@
-﻿# FinAgent
+# FinAgent
 
 **AI-Powered Financial Data Agent**
 IT Application in Banking and Finance - 2026
 
 FinAgent is an end-to-end pipeline that autonomously collects live financial
 data, cleans and engineers features, generates four categories of financial
-charts, and delivers LLM-powered natural language analysis via Google Gemini,
-Anthropic Claude, or OpenAI GPT.
+charts, and delivers LLM-powered natural language analysis via Google Gemini.
 
 ---
 
@@ -46,11 +45,12 @@ FinAgent/
 │   └── docs/
 │       ├── module1.md     # Data collection specification
 │       ├── module2.md     # Processing & feature engineering specification
-│       └── module3.md     # Visualization specification
+│       ├── module3.md     # Visualization specification
+│       └── module4.md     # AI analysis specification
 ├── .env                   # Local secrets - never commit (git-ignored)
 ├── .env.example           # API key configuration template
 ├── .gitignore
-├── requirements.txt
+├── requirement.txt
 ├── main.py                # Pipeline entry point
 ├── web_app.py             # Local Streamlit dashboard
 └── README.md
@@ -64,8 +64,8 @@ FinAgent/
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Collector**  | Stock prices, financial statements, benchmark & peers (yfinance), news with relevance filtering (NewsAPI), macro indicators (FRED + yfinance), industry aggregates                       |
 | **Processor**  | Missing value handling, duplicate removal, type normalisation, IQR outlier detection, full technical indicator suite, rolling beta/Sharpe, relative strength, news sentiment aggregation |
-| **Visualizer** | Price trend + volume, correlation heatmap, returns distribution, rolling stats / Bollinger Bands                                                                                         |
-| **AI Agent**   | Trend summary, anomaly report, risk commentary, multi-asset comparison via Gemini / Claude / GPT                                                                                         |
+| **Visualizer** | Price trend + volume (candlestick), correlation heatmap, returns distribution, rolling stats / Bollinger Bands, comparison metrics, performance comparison, efficient frontier            |
+| **AI Agent**   | Full structured financial analysis (trend, anomaly, risk, macro, news, comparison) via Google Gemini with multi-key failover                                                             |
 
 ---
 
@@ -93,7 +93,7 @@ source .venv/bin/activate
 ### 3. Install dependencies
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirement.txt
 ```
 
 ### 4. Configure API keys
@@ -123,13 +123,15 @@ When `--tickers` is not provided, an interactive menu lets you choose the defaul
 All secrets and runtime settings are managed via the `.env` file.
 See [`.env.example`](.env.example) for the complete list of supported variables.
 
-| Variable            | Required      | Description                                  |
-| ------------------- | ------------- | -------------------------------------------- |
-| `GEMINI_API_KEY`    | Yes (default) | Google Gemini API key                        |
-| `ANTHROPIC_API_KEY` | Optional      | Anthropic Claude API key                     |
-| `OPENAI_API_KEY`    | Optional      | OpenAI GPT API key                           |
-| `NEWS_API_KEY`      | Yes           | NewsAPI.org developer key                    |
-| `FRED_API_KEY`      | Yes           | FRED (Federal Reserve Economic Data) API key |
+| Variable                | Required      | Description                                  |
+| ----------------------- | ------------- | -------------------------------------------- |
+| `GEMINI_API_KEY`        | Yes (default) | Google Gemini API key                        |
+| `GEMINI_API_KEYS`       | Optional      | Comma-separated keys for multi-key failover  |
+| `ANTHROPIC_API_KEY`     | Optional      | Anthropic Claude API key (reserved)          |
+| `OPENAI_API_KEY`        | Optional      | OpenAI GPT API key (reserved)                |
+| `NEWS_API_KEY`          | Yes           | NewsAPI.org developer key                    |
+| `FRED_API_KEY`          | Yes           | FRED (Federal Reserve Economic Data) API key |
+| `ALPHA_VANTAGE_API_KEY` | Optional      | Alpha Vantage API key                        |
 
 Get your free Gemini API key at: https://aistudio.google.com/app/apikey  
 Get your free FRED API key at: https://fred.stlouisfed.org/docs/api/api_key.html
@@ -148,26 +150,22 @@ python main.py --tickers AAPL MSFT
 # Custom date range
 python main.py --tickers TSLA --start 2024-01-01 --end 2024-12-31
 
-# Use a different LLM provider
-python main.py --provider anthropic
-python main.py --provider openai
-
 # Skip AI analysis (offline / cost-saving mode)
 python main.py --skip-ai
 ```
 
 ### CLI Reference
 
-| Argument      | Default       | Description                                                        |
-| ------------- | ------------- | ------------------------------------------------------------------ |
-| `--tickers`   | _(prompt)_    | One or more stock ticker symbols. Omit to get an interactive menu. |
-| `--start`     | 18 months ago | Historical data start date (YYYY-MM-DD)                            |
-| `--end`       | Yesterday     | Historical data end date (YYYY-MM-DD)                              |
-| `--provider`  | `gemini`      | LLM provider: `gemini`, `anthropic`, `openai`                      |
-| `--skip-ai`   | `False`       | Skip the AI analysis stage                                         |
-| `--timeframe` | `daily`       | Chart timeframe: `daily`, `weekly`, `monthly`, `yearly`, `all`     |
+| Argument      | Default        | Description                                                        |
+| ------------- | -------------- | ------------------------------------------------------------------ |
+| `--tickers`   | _(prompt)_     | One or more stock ticker symbols. Omit to get an interactive menu. |
+| `--start`     | 30 months ago  | Historical data start date (YYYY-MM-DD)                            |
+| `--end`       | Yesterday      | Historical data end date (YYYY-MM-DD)                              |
+| `--provider`  | `gemini`       | LLM provider: `gemini`                                             |
+| `--skip-ai`   | `False`        | Skip the AI analysis stage                                         |
+| `--timeframe` | `daily`        | Chart timeframe: `daily`, `weekly`, `monthly`, `yearly`, `all`     |
 
-> **Note:** The default start date includes an 18-month warm-up buffer so that
+> **Note:** The default start date includes a 30-month warm-up buffer so that
 > long-window indicators (MA200, rolling 252-day Sharpe) have sufficient history
 > from day one of the target analysis period.
 
@@ -297,34 +295,48 @@ date per ticker** with columns: `article_count`, `positive_count`,
 
 ### visualizer.py — Visualisation
 
-Generates chart files and saves them to `data/processed/visualization/`.
+`DataVisualizer` generates chart files and saves them to `data/processed/visualization/`.
 
-| Method                          | Description                                          |
-| ------------------------------- | ---------------------------------------------------- |
-| `price_trend_chart(ticker)`     | Closing price with MA overlays and volume bars       |
-| `correlation_heatmap()`         | Correlation heatmap across selected indicators       |
-| `returns_distribution(tickers)` | Histogram and KDE of daily returns (robust fallback) |
-| `rolling_stats_chart(ticker)`   | Moving averages with Bollinger Bands shading         |
+**Public methods:**
+
+| Method                              | Description                                                         |
+| ----------------------------------- | ------------------------------------------------------------------- |
+| `price_trend_chart(ticker)`         | Candlestick/line/OHLC price chart with MA overlays and volume bars  |
+| `indicator_correlation_heatmap()`   | Correlation heatmap across selected technical indicators            |
+| `asset_return_correlation_heatmap()`| Pairwise return correlation heatmap across multiple assets          |
+| `correlation_heatmap()`             | Unified wrapper delegating to the appropriate heatmap method        |
+| `returns_distribution(tickers)`     | Histogram and KDE of daily returns with VaR risk markers            |
+| `rolling_stats_chart(ticker)`       | Moving averages with Bollinger Bands shading                        |
+| `comparison_metrics_chart()`        | Side-by-side key metrics comparison across tickers                  |
+| `performance_comparison_chart()`    | Cumulative return comparison across assets                          |
+| `efficient_frontier_chart()`        | Risk-return efficient frontier scatter                              |
+| `render_all(timeframe, chart_type)` | Runs all charts for all loaded tickers in one call                  |
 
 Notes:
 
 - Returns distribution includes risk marker lines (Return=0, Mean, Median, VaR 95%, VaR 99%) and a dedicated right-side legend panel.
 - KDE rendering includes a fallback smoothed density line when SciPy KDE is not stable for a given sample.
+- `render_all` accepts `chart_type` (`'line'`, `'candlestick'`, `'ohlc'`) and `include_rolling` flag.
 
 ---
 
 ### ai_agent.py — AI Analysis
 
-Builds structured JSON context from processed DataFrames and submits
-grounded prompts to the configured LLM provider.
+`AnalysisAgent` (aliased as `AIAgent`) builds structured JSON context from
+processed DataFrames and submits grounded prompts to Google Gemini.
+Multi-key failover is supported via `GEMINI_API_KEYS` or indexed
+`GEMINI_API_KEY_1` / `GEMINI_API_KEY_2` … environment variables.
 
-| Method                               | Description                                       |
-| ------------------------------------ | ------------------------------------------------- |
-| `generate_trend_summary(data)`       | Per-asset trend and recent performance narrative  |
-| `generate_anomaly_report(data)`      | Outlier events and notable dates                  |
-| `generate_risk_commentary(data)`     | Volatility-based risk assessment                  |
-| `generate_comparison(data, tickers)` | Side-by-side multi-asset comparison               |
-| `run_full_analysis(data)`            | Executes all four tasks and returns a result dict |
+**Public methods:**
+
+| Method                                                           | Description                                                    |
+| ---------------------------------------------------------------- | -------------------------------------------------------------- |
+| `generate_full_analysis(ticker_a, price_df_a, fundamental_df_a, ...)` | Builds and submits the full structured analysis prompt    |
+| `run_full_analysis(ticker_a, price_df_a, fundamental_df_a, ...)` | Backward-compatible wrapper around `generate_full_analysis`    |
+
+Both methods accept optional `macro_df`, `industry_df`, `news_df`, and a
+secondary ticker (`ticker_b`, `price_df_b`, `fundamental_df_b`) for
+comparative analysis.
 
 ---
 
@@ -348,7 +360,7 @@ the following files for each run:
 
 | Source        | Library / API   | Data Type                                    | Free Tier           |
 | ------------- | --------------- | -------------------------------------------- | ------------------- |
-| vnstock (VCI) | vnstock API     | Official VNINDEX EOD benchmark (VN market)  | Public access       |
+| vnstock (VCI) | vnstock API     | Official VNINDEX EOD benchmark (VN market)   | Public access       |
 | Yahoo Finance | yfinance        | Stock prices, benchmark, peers, fundamentals | No API key required |
 | NewsAPI       | REST API        | Financial news articles                      | 100 requests/day    |
 | FRED          | REST API (HTTP) | Fed funds rate, 10Y yield, CPI               | Free with API key   |
@@ -360,7 +372,7 @@ the following files for each run:
 
 | No. | Chart                         | Library | Description                                       |
 | --- | ----------------------------- | ------- | ------------------------------------------------- |
-| 1   | Price Trend + Volume          | Plotly  | Closing price with MA overlays and volume bars    |
+| 1   | Price Trend + Volume          | Plotly  | Candlestick price with MA overlays and volume bars |
 | 2   | Correlation Heatmap           | Plotly  | Correlation matrix across selected indicators     |
 | 3   | Returns Distribution          | Plotly  | Histogram + KDE of daily returns with VaR markers |
 | 4   | Rolling Stats/Bollinger Bands | Plotly  | SMA with upper and lower band shading             |
@@ -389,24 +401,22 @@ Dashboard highlights:
 
 ## AI Analysis
 
-The AI module serialises key statistics from processed DataFrames into a
-structured JSON prompt, instructing the model to reference specific figures
-in its output. This approach minimises hallucinations and ensures all
-commentary is grounded in the actual dataset.
+The AI module (`AnalysisAgent`) serialises key statistics from processed
+DataFrames into a structured JSON prompt, instructing the model to reference
+specific figures in its output. This approach minimises hallucinations and
+ensures all commentary is grounded in the actual dataset.
 
-The default provider is Google Gemini. Anthropic Claude and OpenAI GPT are
-available as alternatives via the `--provider` flag.
+The only currently supported provider is **Google Gemini** (`gemini-2.5-flash`),
+with automatic failover across multiple API keys when configured.
 
-Output categories:
+Output sections produced by `generate_full_analysis`:
 
-- **Trend Summary** - Current trend and recent performance per asset, citing
-  closing prices, moving averages, and cumulative returns.
-- **Anomaly Report** - Notable events or outlier dates identified in the
-  dataset, with magnitude and potential causes.
-- **Risk Commentary** - Volatility-based risk assessment citing rolling
-  volatility, Sharpe ratio, and drawdown figures.
-- **Comparison** - Side-by-side narrative comparing two or more assets
-  across return, volatility, and trend dimensions.
+- **Executive Summary** - Short-term and long-term investment view, market cap classification, and a strategic recommendation.
+- **Macro Analysis** - Impact of global and domestic macro indicators on the stock.
+- **Technical Analysis** - Trend direction, momentum oscillators (RSI, MACD), Bollinger Bands, and volume signals.
+- **Fundamental Analysis** - Profitability, liquidity, solvency, and valuation ratios with interpretation.
+- **News & Sentiment** - Recent corporate events and aggregated sentiment signals.
+- **Comparison** *(optional)* - Side-by-side narrative comparing two assets across return, volatility, and trend dimensions.
 
 Disclaimer: AI-generated outputs are for educational purposes only and do
 not constitute financial advice.
