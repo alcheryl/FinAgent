@@ -370,12 +370,16 @@ the following files for each run:
 
 ## Visualisations
 
-| No. | Chart                         | Library | Description                                       |
-| --- | ----------------------------- | ------- | ------------------------------------------------- |
-| 1   | Price Trend + Volume          | Plotly  | Candlestick price with MA overlays and volume bars |
-| 2   | Correlation Heatmap           | Plotly  | Correlation matrix across selected indicators     |
-| 3   | Returns Distribution          | Plotly  | Histogram + KDE of daily returns with VaR markers |
-| 4   | Rolling Stats/Bollinger Bands | Plotly  | SMA with upper and lower band shading             |
+| No. | Chart                            | Library | Description                                             |
+| --- | -------------------------------- | ------- | ------------------------------------------------------- |
+| 1   | Price Trend + Volume             | Plotly  | Candlestick price with MA overlays and volume bars      |
+| 2   | Indicator Correlation Heatmap    | Plotly  | Correlation matrix across selected technical indicators |
+| 3   | Asset Return Correlation Heatmap | Plotly  | Pairwise return correlation: Stock A / B / Benchmark    |
+| 4   | Returns Distribution             | Plotly  | Histogram + KDE of daily returns with VaR markers       |
+| 5   | Rolling Stats / Bollinger Bands  | Plotly  | SMA with upper and lower band shading                   |
+| 6   | Comparison Metrics               | Plotly  | Side-by-side key metrics bar chart across tickers       |
+| 7   | Performance Comparison           | Plotly  | Cumulative return line chart across assets              |
+| 8   | Efficient Frontier               | Plotly  | Risk-return scatter with efficient frontier curve       |
 
 Generated files are exported to `data/processed/visualization/` as both HTML and PNG (PNG export is best-effort depending on local image backend availability).
 
