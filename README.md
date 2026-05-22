@@ -8,6 +8,10 @@ data, cleans and engineers features, generates four categories of financial
 charts, and delivers LLM-powered natural language analysis via Google Gemini.
 
 ---
+## Project Demo
+![Alt text](demo.mov)
+
+---
 
 ## Table of Contents
 
