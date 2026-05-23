@@ -78,7 +78,7 @@ FinAgent/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Thanhizme/FinAgent.git
+git clone https://github.com/alcheryl/FinAgent.git
 cd FinAgent
 ```
 
