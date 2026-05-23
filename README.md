@@ -191,10 +191,10 @@ propagated cleanly to avoid silent data corruption.
 | Source        | Library / API   | Data Type                                    | Free Tier           |
 | ------------- | --------------- | -------------------------------------------- | ------------------- |
 | vnstock (VCI) | vnstock API     | Official VNINDEX EOD benchmark (VN market)   | Public access       |
-| Yahoo Finance | yfinance        | Stock prices, benchmark, peers, fundamentals | No API key required |
+| Yahoo Finance | yfinance        | Stock prices, benchmark, peers, fundamentals, gold price (GC=F), oil price (CL=F)  | No API key required |
 | NewsAPI       | REST API        | Financial news articles                      | 100 requests/day    |
 | FRED          | REST API (HTTP) | Fed funds rate, 10Y yield, CPI               | Free with API key   |
-| yfinance      | yfinance        | DXY, gold price (GC=F), oil price (CL=F)     | No API key required |
+
 
 ---
 
