@@ -40,13 +40,13 @@ The DataCollector must ensure the resulting CSV files/DataFrames strictly contai
 ### A. Macro Data (`macro_df_wide`)
 
 
-- **Fields**: `date`, `imf_global_growth`, `fed_funds_rate`, `oil_price`, `us_gdp_growth`, `us_interest_rate`,  `us_fx_rate`, `us_fdi_inflow`, `us_cpi`,`us_unemployment`, `vn_unemployment`, `vn_gdp_growth`, `vn_interest_rate`,  `vn_fx_rate`, `vn_fdi_inflow`, `vn_cpi`, `vn_unemployment`.
+- **Fields**: `date`, `imf_global_growth`, `fed_funds_rate`, `oil_price`, `us_gdp_growth`, `us_interest_rate`,  `us_fx_rate`, `us_fdi_inflow`, `us_cpi`,`us_unemployment`, `vn_unemployment`, `vn_gdp_growth`, `vn_interest_rate`,  `vn_fx_rate`, `vn_fdi_inflow`, `vn_cpi`.
 - **Format Requirement**: Must be transformed into a **Wide Format** (columns as variables).
-- **Frequency Handling**: Monthly data (like `us_cpi`,`fed_funds_rate`, ‘vn_gdp_growth’ from FRED) must be Forward-Filled (`ffill`) to match daily stock price frequencies.
-- Sources: fed_funds_rate, us_gdp_growth, us_interest_rate,  us_fx_rate, us_fdi_inflow, us_cpi, us_unemployment → FRED API
-           oil_price → yfinance
-           imf_global_growth → IMF API 
-           vn_gdp_growth, vn_interest_rate, vn_fx_rate, vn_fdi_inflow, vn_cpi, vn_unemployment → World Bank API 
+- **Frequency Handling**: Monthly data (like `us_cpi`,`fed_funds_rate`, `vn_gdp_growth` from FRED) must be Forward-Filled (`ffill`) to match daily stock price frequencies.
+- Sources: `fed_funds_rate`, `us_gdp_growth`, `us_interest_rate`,  `us_fx_rate`, `us_fdi_inflow`, `us_cpi`, `us_unemployment` → FRED API
+          `oil_price` → yfinance
+          `imf_global_growth` → IMF API 
+          `vn_unemployment`, `vn_gdp_growth`, `vn_interest_rate`,  `vn_fx_rate`, `vn_fdi_inflow`, `vn_cpi` → World Bank API 
 
 
 ### B. Industry Data (`industry_df`)
