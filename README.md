@@ -263,8 +263,8 @@ Output sections produced by `generate_full_analysis`:
 
 - **Executive Summary** - Short-term and long-term investment view, market cap classification, and a strategic recommendation.
 - **Macro Analysis** - Impact of global and domestic macro indicators on the stock.
-- **Technical Analysis** - Trend direction, momentum oscillators (RSI, MACD), Bollinger Bands, and volume signals.
-- **Fundamental Analysis** - Profitability, liquidity, solvency, and valuation ratios with interpretation.
+- **Technical Analysis** - Trend direction, momentum oscillators (RSI, MACD), risk, and volume signals.
+- **Fundamental Analysis** - Profitability, activity, liquidity, solvency, and valuation ratios with interpretation.
 - **News & Sentiment** - Recent corporate events and aggregated sentiment signals.
 - **Comparison** *(optional)* - Side-by-side narrative comparing two assets across return, volatility, and trend dimensions.
 
