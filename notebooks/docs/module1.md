@@ -40,7 +40,7 @@ The DataCollector must ensure the resulting CSV files/DataFrames strictly contai
 ### A. Macro Data (`macro_df_wide`)
 
 
-- **Fields**: date, imf_global_growth, fed_funds_rate , oil_price, us_gdp_growth, us_interest_rate,  us_fx_rate, us_fdi_inflow, us_cpi, vn_unemployment.vn_gdp_growth, vn_interest_rate,  vn_fx_rate, vn_fdi_inflow, vn_cpi, vn_unemployment.
+- **Fields**: `date`, `imf_global_growth`, `fed_funds_rate`, `oil_price`, `us_gdp_growth`, `us_interest_rate`,  `us_fx_rate`, `us_fdi_inflow`, `us_cpi`,`us_unemployment`, `vn_unemployment`, `vn_gdp_growth`, `vn_interest_rate`,  `vn_fx_rate`, `vn_fdi_inflow`, `vn_cpi`, `vn_unemployment`.
 - **Format Requirement**: Must be transformed into a **Wide Format** (columns as variables).
 - **Frequency Handling**: Monthly data (like `us_cpi`,`fed_funds_rate`, ‘vn_gdp_growth’ from FRED) must be Forward-Filled (`ffill`) to match daily stock price frequencies.
 - Sources: fed_funds_rate → FRED API
@@ -52,7 +52,7 @@ The DataCollector must ensure the resulting CSV files/DataFrames strictly contai
 ### B. Industry Data (`industry_df`)
 
 
-- **Fields**: date, industry_pe, industry_pb, industry_pe_1y, industry_pe_5y, industry_pb_1y, industry_pb_5y.
+- **Fields**: `date`, `industry_pe`, `industry_pb`, `industry_pe_1y`, `industry_pe_5y`, `industry_pb_1y`, `industry_pb_5y`.
 - **Purpose**: Calculated by averaging the fundamental metrics of the selected peer group for relative valuation.
 
 
@@ -69,7 +69,7 @@ The DataCollector must ensure the resulting CSV files/DataFrames strictly contai
 ### D. Fundamental Data (`fundamental_df`)
 
 
-- **Fields**: date, ticker, revenue, gross_profit, operating_profit, net_income, eps, total_assets, total_liabilities, equity, total_debt, operating_cash_flow, capital_expenditure, interest_expense, tax_rate, receivables, inventory, payble, current_assets, current_liabilities, COGS, roe, roa, pe, pb, shares_outstanding, market cap, risk_free_rate, market_risk_premium.
+- **Fields**: `date`, `ticker`, `revenue`, `gross_profit`, `operating_profit`, `net_income`, `eps`, `total_assets`, `total_liabilities`, `equity`, `total_debt`, `operating_cash_flow`, `capital_expenditure`, `interest_expense`, `tax_rate`, `receivables`, `inventory`,          `payable`, `current_assets`, `current_liabilities`, `COGS`, `roe`, `roa`, `pe`, `pb`, `shares_outstanding`, `market cap`, `risk_free_rate`, `market_risk_premium`.
 - **Key Requirement**: Must include `operating_cash_flow` to evaluate "Profit Quality" (CFO vs Net Income) as demanded by Module 4. Must include ‘operating_cash_flow’, ‘capital_expenditure’, ‘interest_expense’ and ‘tax_rate’ to calculate FCFE. Must include ‘receivables’, ‘inventory’, ‘payable’, ‘current_assets’, ‘current_liabilities’, ‘COGS’ to calculate Activity và Liquidity ratios. Must include 'market_cap'. Note: Large/Mid/Small Cap classification uses a pre-defined mapping table instead of dynamic calculation.
 
 
