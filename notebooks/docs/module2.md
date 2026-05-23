@@ -160,7 +160,7 @@ Technical — Momentum: rsi_14, macd_line, macd_signal, macd_hist
 Technical — Anomalies: volume_spike, gap_up, gap_down, sudden_price_movement
 Technical — Risk: volatility_30, volatility_60, beta, var_95, var_99, max_drawdown, sharpe_ratio
 Comparison 
-Financial Health: roa, roe, gross_profit_margin, net_profit_margin, current_ratio, de_ratio, interest_coverage, fcf, fcfe
+Financial Health: roa, roe, gross_profit_margin, net_profit_margin, current_ratio, cash conversion cycle, de_ratio, fcf, fcfe
 Fundamental Valuation: pe_1y_avg, pe_5y_avg, pe_industry, pb_1y_avg, pb_5y_avg, pb_industry, dcf_intrinsic_price, dcf_upside
 Technical Valuation: rsi_14, macd_line, macd_signal, macd_hist, beta, sharpe_ratio, volatility_30, max_drawdown, ma20_signal, ma50_signal, ma200_signal
 
