@@ -21,12 +21,10 @@ charts, and delivers LLM-powered natural language analysis via Google Gemini.
 - [Configuration](#configuration)
 - [Usage](#usage)
 - [Pipeline Overview](#pipeline-overview)
-- [Modules](#modules)
-- [Processed Data Schema](#processed-data-schema)
 - [Data Sources](#data-sources)
+- [Processed Data Schema](#processed-data-schema)
 - [Visualisations](#visualisations)
 - [AI Analysis](#ai-analysis)
-- [Team](#team)
 
 ---
 
@@ -188,159 +186,15 @@ propagated cleanly to avoid silent data corruption.
 
 ---
 
-## Modules
+## Data Sources
 
-### collector.py — Data Collection
-
-`DataCollector` fetches raw financial data from multiple sources and saves
-everything to `data/raw/` as CSV files.
-
-**Public methods:**
-
-| Method                         | Output file                | Description                                               |
-| ------------------------------ | -------------------------- | --------------------------------------------------------- |
-| `fetch_stock_prices()`         | `<TICKER>_prices.csv`      | OHLCV daily history via yfinance                          |
-| `fetch_benchmark()`            | `benchmark_<SYMBOL>.csv`   | Benchmark index: VN uses official `VNINDEX` via vnstock (VCI) with yfinance/proxy fallback; Global uses `^GSPC` |
-| `fetch_peers(peers)`           | `peer_<TICKER>.csv`        | Peer tickers matched by sector and market-cap             |
-| `fetch_financial_statements()` | `<TICKER>_fundamental.csv` | Quarterly income statement, balance sheet, cash flow      |
-| `fetch_macro_indicators()`     | `macro_indicators.csv`     | FRED rates/CPI + yfinance commodities/FX in wide format   |
-| `fetch_industry_data(peers)`   | `industry_data.csv`        | Peer-averaged fundamental metrics                         |
-| `fetch_news(query)`            | `news_<TICKER>.csv`        | Relevance-filtered news from NewsAPI, one row per article |
-| `fetch_intraday()`             | `intraday_<TICKER>.csv`    | Optional short-term 5-minute OHLCV                        |
-
-**News relevance filtering:**  
-Short or ambiguous tickers (e.g. `V` for Visa) are automatically expanded to
-their full company names using `_NEWS_ENTITY_ALIASES`. Each article is checked
-against finance-context keywords and per-ticker exclusion keywords before being
-kept. Articles that pass the filter carry one of eight `event_type` labels:
-`dividend`, `earnings`, `m&a`, `management_change`, `expansion`, `legal`,
-`macro`, `general`.
-
-**Data validation (`_validate_df`)** runs after every fetch and:
-
-1. Logs missing value counts.
-2. Drops rows where all value columns are NaN.
-3. Sorts by `date` ascending.
-
----
-
-### processor.py — Data Cleaning & Feature Engineering
-
-`DataProcessor` is initialised with a single raw DataFrame and a ticker
-symbol. All methods return `self` for chaining. The full pipeline is
-executed by `run_pipeline()` which saves the result to `data/processed/`.
-
-**Cleaning steps:**
-
-| Method                               | Description                                                                                                   |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
-| `handle_missing_values(strategy)`    | `ffill` then `bfill` for price series                                                                         |
-| `remove_duplicates()`                | Deduplicates on `(date, ticker)` with logging                                                                 |
-| `normalise_types()`                  | Casts `date` to datetime, auto-detects and casts all numeric-like columns to float64, strips currency symbols |
-| `detect_outliers(method, threshold)` | IQR method on `daily_return`; flags an `is_outlier` boolean column                                            |
-
-**Feature engineering — return metrics:**
-
-| Column                                                                | Description                         |
-| --------------------------------------------------------------------- | ----------------------------------- |
-| `daily_return`                                                        | $r_t = (P_t - P_{t-1}) / P_{t-1}$   |
-| `log_return`                                                          | $\ln(P_t / P_{t-1})$                |
-| `cum_return_7d`, `cum_return_30d`, `cum_return_90d`, `cum_return_ytd` | Cumulative returns over each window |
-
-**Feature engineering — trend indicators:**
-
-| Column                                 | Description                                   |
-| -------------------------------------- | --------------------------------------------- |
-| `ma7`, `ma20`, `ma30`, `ma50`, `ma200` | Simple moving averages                        |
-| `ema12`, `ema26`                       | Exponential moving averages (inputs for MACD) |
-
-**Feature engineering — volatility & risk:**
-
-| Column                              | Description                                          |
-| ----------------------------------- | ---------------------------------------------------- |
-| `volatility_20`, `volatility_60`    | Rolling std dev of daily returns (annualised)        |
-| `bb_upper`, `bb_middle`, `bb_lower` | Bollinger Bands (20-day, 2 σ)                        |
-| `atr_14`                            | Average True Range (14-day)                          |
-| `drawdown`                          | Peak-to-trough drawdown                              |
-| `sharpe_ratio`                      | Rolling 252-day annualised Sharpe ratio              |
-| `beta`                              | Rolling 60-day beta vs benchmark (first 60 rows NaN) |
-
-**Feature engineering — momentum oscillators:**
-
-| Column                                  | Description                                  |
-| --------------------------------------- | -------------------------------------------- |
-| `rsi_14`                                | Relative Strength Index (14-day)             |
-| `macd_line`, `macd_signal`, `macd_hist` | MACD (EMA12 − EMA26, EMA9 signal, histogram) |
-
-**Multi-asset features:**
-
-| Method                                 | Description                                             |
-| -------------------------------------- | ------------------------------------------------------- |
-| `calc_correlation_matrix(other_dfs)`   | Pairwise return correlation across assets               |
-| `calc_relative_strength(benchmark_df)` | Ratio of stock cumulative return to benchmark (RS Line) |
-
-**News processing:**
-
-`process_news()` is a standalone method (not part of the price pipeline).
-It loads `news_<TICKER>.csv` files for all tickers, encodes sentiment
-(`positive=1`, `neutral=0`, `negative=-1`), and aggregates to **one row per
-date per ticker** with columns: `article_count`, `positive_count`,
-`neutral_count`, `negative_count`. Result is saved to
-`data/processed/news_processed.csv`.
-
-**Pipeline execution:**
-
-| Method                    | Description                                                                |
-| ------------------------- | -------------------------------------------------------------------------- |
-| `run_pipeline()`          | Runs all cleaning + feature engineering steps; returns processed DataFrame |
-| `run_pipeline_and_save()` | Runs pipeline and saves result to `data/processed/<TICKER>_processed.csv`  |
-
----
-
-### visualizer.py — Visualisation
-
-`DataVisualizer` generates chart files and saves them to `data/processed/visualization/`.
-
-**Public methods:**
-
-| Method                              | Description                                                         |
-| ----------------------------------- | ------------------------------------------------------------------- |
-| `price_trend_chart(ticker)`         | Candlestick/line/OHLC price chart with MA overlays and volume bars  |
-| `indicator_correlation_heatmap()`   | Correlation heatmap across selected technical indicators            |
-| `asset_return_correlation_heatmap()`| Pairwise return correlation heatmap across multiple assets          |
-| `correlation_heatmap()`             | Unified wrapper delegating to the appropriate heatmap method        |
-| `returns_distribution(tickers)`     | Histogram and KDE of daily returns with VaR risk markers            |
-| `rolling_stats_chart(ticker)`       | Moving averages with Bollinger Bands shading                        |
-| `comparison_metrics_chart()`        | Side-by-side key metrics comparison across tickers                  |
-| `performance_comparison_chart()`    | Cumulative return comparison across assets                          |
-| `efficient_frontier_chart()`        | Risk-return efficient frontier scatter                              |
-| `render_all(timeframe, chart_type)` | Runs all charts for all loaded tickers in one call                  |
-
-Notes:
-
-- Returns distribution includes risk marker lines (Return=0, Mean, Median, VaR 95%, VaR 99%) and a dedicated right-side legend panel.
-- KDE rendering includes a fallback smoothed density line when SciPy KDE is not stable for a given sample.
-- `render_all` accepts `chart_type` (`'line'`, `'candlestick'`, `'ohlc'`) and `include_rolling` flag.
-
----
-
-### ai_agent.py — AI Analysis
-
-`AnalysisAgent` (aliased as `AIAgent`) builds structured JSON context from
-processed DataFrames and submits grounded prompts to Google Gemini.
-Multi-key failover is supported via `GEMINI_API_KEYS` or indexed
-`GEMINI_API_KEY_1` / `GEMINI_API_KEY_2` … environment variables.
-
-**Public methods:**
-
-| Method                                                           | Description                                                    |
-| ---------------------------------------------------------------- | -------------------------------------------------------------- |
-| `generate_full_analysis(ticker_a, price_df_a, fundamental_df_a, ...)` | Builds and submits the full structured analysis prompt    |
-| `run_full_analysis(ticker_a, price_df_a, fundamental_df_a, ...)` | Backward-compatible wrapper around `generate_full_analysis`    |
-
-Both methods accept optional `macro_df`, `industry_df`, `news_df`, and a
-secondary ticker (`ticker_b`, `price_df_b`, `fundamental_df_b`) for
-comparative analysis.
+| Source        | Library / API   | Data Type                                    | Free Tier           |
+| ------------- | --------------- | -------------------------------------------- | ------------------- |
+| vnstock (VCI) | vnstock API     | Official VNINDEX EOD benchmark (VN market)   | Public access       |
+| Yahoo Finance | yfinance        | Stock prices, benchmark, peers, fundamentals | No API key required |
+| NewsAPI       | REST API        | Financial news articles                      | 100 requests/day    |
+| FRED          | REST API (HTTP) | Fed funds rate, 10Y yield, CPI               | Free with API key   |
+| yfinance      | yfinance        | DXY, gold price (GC=F), oil price (CL=F)     | No API key required |
 
 ---
 
@@ -357,18 +211,6 @@ the following files for each run:
 | `macro_processed.csv`                | Wide-format macro indicators, daily frequency | `date`, `fed_funds_rate`, `us_10y_yield`, `us_cpi`, `dxy`, `gold_price`, `oil_price`, `gdp`, `unemployment_rate`, `domestic_interest_rate`, `fx_rate`, `fdi_inflow`                                                                                                                                                                                                 |
 | `industry_processed.csv`             | Peer-averaged fundamental metrics             | `date`, `industry_roe`, `industry_margin` (all-null columns auto-dropped)                                                                                                                                                                                                                                                                                           |
 | `news_processed.csv`                 | Daily aggregated news sentiment per ticker    | `date`, `ticker`, `article_count`, `headline`, `summary`, `source`, `sentiment`, `sentiment_score`, `positive_count`, `neutral_count`, `negative_count`, `event_type`                                                                                                                                                                                               |
-
----
-
-## Data Sources
-
-| Source        | Library / API   | Data Type                                    | Free Tier           |
-| ------------- | --------------- | -------------------------------------------- | ------------------- |
-| vnstock (VCI) | vnstock API     | Official VNINDEX EOD benchmark (VN market)   | Public access       |
-| Yahoo Finance | yfinance        | Stock prices, benchmark, peers, fundamentals | No API key required |
-| NewsAPI       | REST API        | Financial news articles                      | 100 requests/day    |
-| FRED          | REST API (HTTP) | Fed funds rate, 10Y yield, CPI               | Free with API key   |
-| yfinance      | yfinance        | DXY, gold price (GC=F), oil price (CL=F)     | No API key required |
 
 ---
 
