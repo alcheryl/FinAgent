@@ -37,20 +37,20 @@ Implement a pipeline that handles the following:
 ### B. Activity ratio
 
 
-- Receivable Turnover = revenue / avg(receivables)
+- Receivable Turnover = `revenue` / avg(`receivables`)
 
 
-- Inventory Turnover = cogs / avg(inventory); trong đó cogs = revenue − gross_profit
+- Inventory Turnover = `cogs` / avg(`inventory`); where `cogs` = `revenue` − `gross_profit`
 
 
-- Payable Turnover = purchase / avg(payables); purchase = ending inventory − beginning inventory + cogs
+- Payable Turnover = `purchase` / avg(`payables`); where `purchase` = `ending inventory` − `beginning inventory` + `cogs`
 
 
-- Cash Conversion Cycle (CCC) = 365 / Receivable Turnover + 365 / Inventory Turnover − 365 / Payable Turnover
+- Cash Conversion Cycle (CCC) = 365 / `Receivable Turnover` + 365 / `Inventory Turnover` − 365 / `Payable Turnover`
 ### C. Liquidity & Solvency ratio
-- Current Ratio = current_assets / current_liabilities
-- D/E (Debt-to-Equity) = total_debt / equity
-- Interest Coverage = operating_profit / interest_expense
+- Current Ratio = `current_assets` / `current_liabilities`
+- D/E (Debt-to-Equity) = `total_debt` / `equity`
+- Interest Coverage = `operating_profit` / `interest_expense`
 
 
 
