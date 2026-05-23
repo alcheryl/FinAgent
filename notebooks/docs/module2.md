@@ -31,7 +31,7 @@ Implement a pipeline that handles the following:
 - **ROE** = Take `roe` collected from Module 1  
 - **Gross Profit Margin** = `gross_profit` / `revenue` 
 - **Net Profit Margin** = `net_income` / `revenue`
-- Revenue_growth = (revenue_current - revenue_previous) / revenue_previous
+- Revenue_growth = (`revenue_current` - `revenue_previous`) / `revenue_previous`
 
 
 ### B. Activity ratio
@@ -59,7 +59,7 @@ Implement a pipeline that handles the following:
 
 ### D. Cash flow
 - **FCFF (Free Cash Flow to Firm)** = `operating_cash_flow` + `interest_expense` × (1 − `tax_rate`) − `capital_expenditure` 
-- **FCFE (Free Cash Flow to Equity)** = `operating_cash_flow` − `capital_expenditure` + net borrowing; where net borrowing = change in `total_debt`
+- **FCFE (Free Cash Flow to Equity)** = `operating_cash_flow` − `capital_expenditure` + `net borrowing`; where net borrowing = change in `total_debt`
 ### E. Valuation Metrics
 - **P/E 1Y average**: Rolling 252-day mean of `pe` ratio 
 - **P/E 5Y average**: Rolling 1260-day mean of `pe` ratio 
